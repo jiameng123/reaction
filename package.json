@@ -1,0 +1,19 @@
+{
+  "name": "reaction",
+  "version": "1.0.0",
+  "description": "reaction for javascript",
+  "main": "index.js",
+  "author": "ninja",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-babel": "^5.0.4",
+    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-run": "^2.0.2",
+    "@rollup/plugin-typescript": "^5.0.0",
+    "typescript": "^3.9.5"
+  },
+ "scripts": {
+    "build": "rollup -c rollup.config.js"
+  }
+}
