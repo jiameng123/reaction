@@ -6,14 +6,21 @@
   "author": "ninja",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/plugin-transform-runtime": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "@babel/preset-typescript": "^7.10.1",
     "@rollup/plugin-babel": "^5.0.4",
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
     "@rollup/plugin-run": "^2.0.2",
     "@rollup/plugin-typescript": "^5.0.0",
+    "rollup": "^2.18.1",
+    "tslib": "^2.0.0",
     "typescript": "^3.9.5"
   },
- "scripts": {
-    "build": "rollup -c rollup.config.js"
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "dev": "rollup -c rollup.config.js  --watch"
   }
 }
