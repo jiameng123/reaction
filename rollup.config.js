@@ -1,9 +1,11 @@
-import typescript from '@rollup/plugin-typescript';
+import typescript from 'rollup-plugin-typescript2';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import path from "path";
+import run from '@rollup/plugin-run';
 
+const dev = process.env.ROLLUP_WATCH === 'true';
 export default {
   input: "src/index.ts",
   output:[ 
@@ -21,20 +23,12 @@ export default {
       file:"./dist/index.esm.js",
       format: 'esm'
     },
-     {
-     
-      file:"./dist/index.iife.js",
-      format: 'iife'
-    },
     {
-     
+      name:"rc",
       file:"./dist/index.umd.js",
       format: 'umd'
     },
-    {
-      file:"./dist/index.system.js",
-      format: 'system'
-    }
+    
   ],
   plugins: [
     resolve(),
@@ -44,6 +38,7 @@ export default {
       configFile: path.resolve(__dirname, '.babelrc.json'),
       allowAllFormats: true,
       babelHelpers:'runtime'
-    })
+    }),
+    dev && run()
   ]
 }

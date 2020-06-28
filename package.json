@@ -2,7 +2,7 @@
   "name": "reaction",
   "version": "1.0.0",
   "description": "reaction for javascript",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "author": "ninja",
   "license": "MIT",
   "devDependencies": {
@@ -14,8 +14,8 @@
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
     "@rollup/plugin-run": "^2.0.2",
-    "@rollup/plugin-typescript": "^5.0.0",
     "rollup": "^2.18.1",
+    "rollup-plugin-typescript2": "^0.27.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.5"
   },

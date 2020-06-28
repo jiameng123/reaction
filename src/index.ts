@@ -1,7 +1,11 @@
 const a:string = "b";
 
 
-export default class BB {
+
+interface IB {
+    getA:() => void
+}
+export default class BB implements IB {
     getA() {
         console.log(1)
     }
