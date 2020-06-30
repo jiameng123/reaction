@@ -6,6 +6,10 @@ import path from "path";
 import run from '@rollup/plugin-run';
 
 const dev = process.env.ROLLUP_WATCH === 'true';
+const extensions = [
+  '.js', '.jsx', '.ts', '.tsx',
+];
+
 export default {
   input: "src/index.ts",
   output:[ 
@@ -16,7 +20,7 @@ export default {
     {
      
       file:"./dist/index.amd.js",
-      format: 'amd'
+      format: 'amd',
     },
     {
      
@@ -31,14 +35,17 @@ export default {
     
   ],
   plugins: [
-    resolve(),
+    resolve({extensions}),
     commonjs(),
     typescript(),
     babel({
+      extensions,
       configFile: path.resolve(__dirname, '.babelrc.json'),
-      allowAllFormats: true,
-      babelHelpers:'runtime'
+      babelHelpers: 'runtime',
     }),
+   
     dev && run()
   ]
 }
+
+
