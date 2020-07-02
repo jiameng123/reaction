@@ -9,28 +9,39 @@ export default class Reaction {
 
 	private callback: IFunc = () => { };
 	static stack: Array<Reaction> = [];
+	static running:boolean = false;
+	static clearns:Array<Set<any>> = [];
 
   	constructor(fn: IFunc) {
     	this.callback = fn;
   	}
 
-  	track(callabck: IFunc) {
-  
+  	track() {
+		 
+		Reaction.stack.forEach(reaction => reaction.callback());
   	}
 
 	run() {
-		try {
-			Reaction.stack.push(this);
-			this.callback();
-		
-		} catch (error) {
-		
-    } finally {
-     
-			Reaction.stack.pop();
-    }
-     console.log(Reaction.stack, "sss")
+	
+		if(Reaction.stack.indexOf(this) === -1) {
+			
+			if(Reaction.clearns.length) {
+				Reaction.clearns.forEach((reactionsForKey) => {
+					reactionsForKey.delete(this);
+				});
+				Reaction.clearns = [];
+			}
 
+			try {
+				Reaction.stack.push(this);
+				this.callback();
+			} catch (error) {
+				 
+			} finally {
+				Reaction.stack.pop();
+			}
+		}
+		
 	}
 
 	unObserve() {
@@ -48,6 +59,8 @@ export default class Reaction {
 
 			if (!reactionsForKey.has(currentReaction)) {
 				reactionsForKey.add(currentReaction);
+				Reaction.clearns.push(reactionsForKey);
+				
 			}
 		
 		}
@@ -56,14 +69,19 @@ export default class Reaction {
 
 	static getReactionsForOperation({ target, key, type }: IOperation):Set<Reaction> {
 		const reactionsForRaw = Store.connection.get(target);
-    const reactionsForKey = reactionsForRaw?.get(key);
+		const reactionsForKey = reactionsForRaw?.get(key);
 		const reactions = new Set<Reaction>();
-		reactionsForKey?.forEach(reaction => reactions.add(reaction));
+		
+		reactionsForKey?.forEach(reaction => {
+			reactions.add(reaction);
+		});
 		return reactions;
 	}
 	
 	static runningReactions({ target, key, type }: IOperation) {
-		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => reaction.run());
+		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => {
+			reaction.run();
+		});
 	}
 }
 

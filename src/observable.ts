@@ -1,6 +1,7 @@
 
 import { TRaw } from "./index.interface";
 import Store from "./internals";
+import handler from "./handler";
 /**
  * @description 创建observable对象
  * @sig  a -> a
@@ -9,7 +10,7 @@ import Store from "./internals";
  */
 const observable = <T extends TRaw>(raw:T):T =>  {
     if(Store.proxyToRaw.has(raw)) return raw;
-    return Store.rawToProxy.get(raw) || new Store<typeof raw>(raw).getProxy();
+    return Store.rawToProxy.get(raw) || new Store<typeof raw>(raw, new Proxy(raw, handler)).getProxy();
 }
 
 export const isObservable = <T extends object>(obj:T):boolean => Store.rawToProxy.has(obj);

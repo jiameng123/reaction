@@ -1,6 +1,6 @@
 
 import IStore, { TRaw, TProxy , TSubscribe, TKey} from "./index.interface";
-import handler from "./handler";
+
 import Reaction from './reaction';
 
 export default class Store<T extends object> implements IStore<T> {
@@ -10,19 +10,24 @@ export default class Store<T extends object> implements IStore<T> {
     static rawToProxy = new WeakMap<object, any>();
     static connection = new WeakMap<TRaw, Map<TKey, Set<Reaction>>>();
 
-    constructor(raw:T) {
+    constructor(raw:T, proxy:T) {
         this.raw = raw;
-        this._proxy = new Proxy(this.raw, handler);
+        this._proxy = proxy;
      
         Store.rawToProxy.set(this.raw, this._proxy);
         Store.proxyToRaw.set(this._proxy, this.raw);
         Store.connection.set(this.raw, new Map<symbol | string | number, any>());
     }
 
-    getProxy() {
-      return this._proxy as T; 
+      getProxy() {
+      return this._proxy as any; 
+    }
+
+    static getRaw () {
+      return (this as any).raw;
     }
   
 }
+
 
 
