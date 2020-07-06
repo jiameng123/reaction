@@ -9,7 +9,6 @@ export default class Reaction {
 
 	private callback: IFunc = () => { };
 	static stack: Array<Reaction> = [];
-	static running:boolean = false;
 	static clearns:Array<Set<any>> = [];
 
   	constructor(fn: IFunc) {
@@ -17,7 +16,6 @@ export default class Reaction {
   	}
 
   	track() {
-		 
 		Reaction.stack.forEach(reaction => reaction.callback());
   	}
 
@@ -44,10 +42,15 @@ export default class Reaction {
 		
 	}
 
+	//取消观察
 	unObserve() {
-
+	
+		Reaction.clearns.forEach( reaction => {
+			reaction.delete(this);
+		});
 	}
 
+	//依赖收集
 	static register(operation: IOperation) {
 		const [currentReaction] = Reaction.stack.slice(-1);
 		if (currentReaction) {
