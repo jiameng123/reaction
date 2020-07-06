@@ -18,7 +18,9 @@ export interface IOperation {
 
 export default abstract class IStore<T extends object> {
   
-  abstract getProxy():T;
+  abstract getProxy(raw:T):T;
+  abstract setProxy(raw:object, proxy:object) :void;
+  abstract getRaw (proxyObj:T):T;
   
 }
 

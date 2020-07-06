@@ -22,7 +22,7 @@ export default class Reaction {
 	run() {
 	
 		if(Reaction.stack.indexOf(this) === -1) {
-			
+			//重置Reaction cleanrs
 			if(Reaction.clearns.length) {
 				Reaction.clearns.forEach((reactionsForKey) => {
 					reactionsForKey.delete(this);

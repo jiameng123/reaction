@@ -3,31 +3,30 @@ import IStore, { TRaw, TProxy , TSubscribe, TKey} from "./index.interface";
 
 import Reaction from './reaction';
 
-export default class Store<T extends object> implements IStore<T> {
-    private raw: TRaw = {};
-    private  _proxy: TProxy = {};
-    static proxyToRaw = new WeakMap<object, any>();
-    static rawToProxy = new WeakMap<object, any>();
-    static connection = new WeakMap<TRaw, Map<TKey, Set<Reaction>>>();
+ class Store<T extends object> implements IStore<T> {
+   
+    public proxyToRaw = new WeakMap<object, any>();
+    public rawToProxy = new WeakMap<object, any>();
+    public connection = new WeakMap<TRaw, Map<TKey, Set<Reaction>>>();
 
-    constructor(raw:T, proxy:T) {
-        this.raw = raw;
-        this._proxy = proxy;
-     
-        Store.rawToProxy.set(this.raw, this._proxy);
-        Store.proxyToRaw.set(this._proxy, this.raw);
-        Store.connection.set(this.raw, new Map<symbol | string | number, any>());
+   
+    public getProxy(raw:T) {
+      return  this.rawToProxy.get(raw); 
     }
 
-      getProxy() {
-      return this._proxy as any; 
+    public setProxy(raw:T, proxy:T) {
+      this.rawToProxy.set(raw, proxy);
+      this.proxyToRaw.set(proxy,raw);
+      this.connection.set(raw, new Map<symbol | string | number, any>());
     }
 
-    static getRaw () {
-      return (this as any).raw;
+    public getRaw (proxyObj:T) {
+      return this.proxyToRaw.get(proxyObj) as T;
     }
   
 }
+
+export default new Store();
 
 
 

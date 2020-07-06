@@ -1,8 +1,8 @@
 import { observable, observe, isObservable } from "../src/index";
-import observer from "../src/observer";
 
 
-describe("observe",  () => {
+
+describe("test observe",  () => {
 
     test("observe回调函数默认立即执行",() => {
         const callback = jest.fn();
@@ -92,7 +92,7 @@ describe("observe",  () => {
     });
 });
 
-describe("isObservable" , () => {
+describe("test isObservable" , () => {
     test('observable包装的基本对象，isObservable返回true', () => {
        const a = {a:1,b:2};
        observable(a);
