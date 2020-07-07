@@ -1,21 +1,13 @@
 const { observable , observe } = require("@nx-js/observer-util");
-const oObj = observable( {a:1, b:2, c:3});
+const oObj = observable( []);
 
 observe(() => {
-  oObj.a++;
-  console.log(oObj.a);
-});
-observe(() => {
-  console.log(oObj.a, "222222");
-});
-
-observe(() => {
-    
-  console.log(oObj.b);
  
+  console.log(oObj);
 });
-oObj.b++;
-oObj.a++;
+
+oObj.push(1);
+
 
 
 

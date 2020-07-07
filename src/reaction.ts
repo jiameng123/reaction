@@ -23,7 +23,7 @@ export default class Reaction {
 	run() {
 		
 		if(Reaction.stack.indexOf(this) === -1) {
-			this.release();
+			this.release(this);
 			try {
 				Reaction.stack.push(this);
 				this.callback();
@@ -37,19 +37,19 @@ export default class Reaction {
 	}
 
     //如果当前reaction没有处于运行状态，重置Reaction cleanrs
-	release() {
+	release(reaction:Reaction) {
 		if(this.clearns.length) {
 			this.clearns.forEach((reactionsForKey) => {
-				reactionsForKey.delete(this);
+				reactionsForKey.delete(reaction);
 			});
-			this.clearns = [];
+			reaction.clearns = [];
 			
 		}
 	}
 
 	//取消观察
-	unObserve() {
-		this.release();
+	unObserve(reation?:Reaction) {
+		this.release(reation || this);
 	}
 
 	//依赖收集
