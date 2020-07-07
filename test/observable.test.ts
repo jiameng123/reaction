@@ -64,6 +64,8 @@ describe("test observe",  () => {
         const oba = observable(a);
         const fn = jest.fn();
         const fn2 = jest.fn();
+        const fn3 = jest.fn();
+        
         const unob = observe(() => {
             const b = oba.b;
             fn(); 
@@ -74,21 +76,37 @@ describe("test observe",  () => {
             fn2(); 
         });
         
+        const unob3 = observe(() => {
+            const c = oba.c;
+            fn3(); 
+        });
+
         oba.b++;
         oba.b++;
+        oba.c++;
 
         expect(fn).toBeCalledTimes(3);
         expect(fn2).toBeCalledTimes(3);
+        expect(fn3).toBeCalledTimes(2);
 
         unob();
         oba.b++;   
         expect(fn).toBeCalledTimes(3);
         expect(fn2).toBeCalledTimes(4);
+        expect(fn3).toBeCalledTimes(2);
 
         unob2();
         oba.b++;   
+        oba.c++;
         expect(fn).toBeCalledTimes(3);
         expect(fn2).toBeCalledTimes(4);
+        expect(fn3).toBeCalledTimes(3);
+
+        unob3();
+        oba.c++;
+        expect(fn).toBeCalledTimes(3);
+        expect(fn2).toBeCalledTimes(4);
+        expect(fn3).toBeCalledTimes(3);
     });
 });
 

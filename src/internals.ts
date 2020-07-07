@@ -10,7 +10,7 @@ import Reaction from './reaction';
     public connection = new WeakMap<TRaw, Map<TKey, Set<Reaction>>>();
 
    
-    public getProxy(raw:T) {
+    public getProxy<U extends object>(raw:U) {
       return  this.rawToProxy.get(raw); 
     }
 
@@ -20,8 +20,8 @@ import Reaction from './reaction';
       this.connection.set(raw, new Map<symbol | string | number, any>());
     }
 
-    public getRaw (proxyObj:T) {
-      return this.proxyToRaw.get(proxyObj) as T;
+    public getRaw<U extends object>(proxyObj:U) {
+      return this.proxyToRaw.get(proxyObj) as U;
     }
   
 }

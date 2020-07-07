@@ -1,5 +1,5 @@
 import { IOperation } from './index.interface';
-import Store from './internals';
+import store from './internals';
 
 
 export type IFunc = (...args: any) => any;
@@ -9,7 +9,7 @@ export default class Reaction {
 
 	private callback: IFunc = () => { };
 	static stack: Array<Reaction> = [];
-	static clearns:Array<Set<any>> = [];
+	private clearns: Array<Set<Reaction>> = [];
 
   	constructor(fn: IFunc) {
     	this.callback = fn;
@@ -17,19 +17,13 @@ export default class Reaction {
 
   	track() {
 		Reaction.stack.forEach(reaction => reaction.callback());
-  	}
+	}
+	  
 
 	run() {
-	
+		
 		if(Reaction.stack.indexOf(this) === -1) {
-			//重置Reaction cleanrs
-			if(Reaction.clearns.length) {
-				Reaction.clearns.forEach((reactionsForKey) => {
-					reactionsForKey.delete(this);
-				});
-				Reaction.clearns = [];
-			}
-
+			this.release();
 			try {
 				Reaction.stack.push(this);
 				this.callback();
@@ -42,12 +36,20 @@ export default class Reaction {
 		
 	}
 
+    //如果当前reaction没有处于运行状态，重置Reaction cleanrs
+	release() {
+		if(this.clearns.length) {
+			this.clearns.forEach((reactionsForKey) => {
+				reactionsForKey.delete(this);
+			});
+			this.clearns = [];
+			
+		}
+	}
+
 	//取消观察
 	unObserve() {
-	
-		Reaction.clearns.forEach( reaction => {
-			reaction.delete(this);
-		});
+		this.release();
 	}
 
 	//依赖收集
@@ -55,23 +57,24 @@ export default class Reaction {
 		const [currentReaction] = Reaction.stack.slice(-1);
 		if (currentReaction) {
 			const { target, key } = operation;
-			const reactionsForRaw = Store.connection.get(target);
+			const reactionsForRaw = store.connection.get(target);
 			let reactionsForKey = reactionsForRaw?.get(key);
 			if (!reactionsForKey) reactionsForKey = new Set();
 			reactionsForRaw?.set(key, reactionsForKey);
 
 			if (!reactionsForKey.has(currentReaction)) {
 				reactionsForKey.add(currentReaction);
-				Reaction.clearns.push(reactionsForKey);
+				currentReaction.clearns.push(reactionsForKey);
 				
 			}
-		
+
 		}
 
 	}
 
+	//根据 object.prop 收集对应的观测函数  object.prop ---> reaction
 	static getReactionsForOperation({ target, key, type }: IOperation):Set<Reaction> {
-		const reactionsForRaw = Store.connection.get(target);
+		const reactionsForRaw = store.connection.get(target);
 		const reactionsForKey = reactionsForRaw?.get(key);
 		const reactions = new Set<Reaction>();
 		
@@ -81,6 +84,7 @@ export default class Reaction {
 		return reactions;
 	}
 	
+	//根据object.prop调用对应的观察函数
 	static runningReactions({ target, key, type }: IOperation) {
 		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => {
 			reaction.run();

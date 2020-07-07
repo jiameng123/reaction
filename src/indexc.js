@@ -3,15 +3,20 @@ const oObj = observable( {a:1, b:2, c:3});
 
 observe(() => {
   oObj.a++;
-  observe(() => {
-      oObj.b++;
-      observe(() => {
-          oObj.c++; 
-      });
-  });
+  console.log(oObj.a);
+});
+observe(() => {
+  console.log(oObj.a, "222222");
+});
+
+observe(() => {
+    
+  console.log(oObj.b);
+ 
 });
 oObj.b++;
-console.log(oObj.c,'s');
+oObj.a++;
+
 
 
 
