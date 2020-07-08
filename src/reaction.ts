@@ -74,21 +74,24 @@ export default class Reaction {
 
 	//根据 object.prop 收集对应的观测函数  object.prop ---> reaction
 	static getReactionsForOperation({ target, key, type }: IOperation):Set<Reaction> {
-		const reactionsForRaw = store.connection.get(target);
-		const reactionsForKey = reactionsForRaw?.get(key);
-		const reactions = new Set<Reaction>();
+		const reactionsForRaw = store.connection.get(target) || new Map();
+	
+		const reactionsForKey = new Set<Reaction>();
+		Reaction.addReactionsForKey(reactionsForKey, reactionsForRaw,  Array.isArray(target) ? 'length' : key );
 		
-		reactionsForKey?.forEach(reaction => {
-			reactions.add(reaction);
-		});
-		return reactions;
+		return reactionsForKey;
 	}
+
+   
+	static addReactionsForKey(reactionsForKey:Set<Reaction>, target:Map<string|symbol|number, Set<Reaction>>, key:string|symbol|number) {
+		const reactions = target.get(key);
+		reactions && reactions.forEach(reactionsForKey.add, reactionsForKey);
+	}
+
 	
 	//根据object.prop调用对应的观察函数
 	static runningReactions({ target, key, type }: IOperation) {
-		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => {
-			reaction.run();
-		});
+		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => reaction.run());
 	}
 }
 

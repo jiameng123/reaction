@@ -8,7 +8,7 @@ import Reaction from './reaction';
     public proxyToRaw = new WeakMap<object, any>();
     public rawToProxy = new WeakMap<object, any>();
     public connection = new WeakMap<TRaw, Map<TKey, Set<Reaction>>>();
-
+    public ITERATION_KEY = Symbol("iteration key");
    
     public getProxy<U extends object>(raw:U) {
       return  this.rawToProxy.get(raw); 

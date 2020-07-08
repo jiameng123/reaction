@@ -1,125 +1,60 @@
-import { observable, observe, isObservable } from "../src/index";
+import { observable,  isObservable } from "../src/index";
 
 
-
-describe("test observe",  () => {
-
-    test("observe回调函数默认立即执行",() => {
-        const callback = jest.fn();
-        observe(callback);
-        expect(callback).toBeCalled();
-    });
-
-    test("observe回调中嵌套observe，应正常执行",() => {
-        const o = {a:1, b:2, c:3};
-        const oObj = observable(o);
-       
-        observe(() => {
-            oObj.a++;
-            
-            observe(() => {
-                oObj.b++;
-                observe(() => {
-                    oObj.c++; 
-                });
-            });
-        });
-
-        expect(oObj.a).toBe(2);
-        expect(oObj.b).toBe(3);
-        expect(oObj.c).toBe(4);
-        
-        
-        oObj.b++;
-        expect(oObj.b).toBe(5);
-        expect(oObj.c).toBe(6);
-       
-    });
-
-
-    test("取消观察，observe回调函数不再执行", () => {
-        const a  = {c:1, d:2};
-        const oba =  observable(a);
-        const testCallBack = jest.fn();
-
-        const unobserve = observe(() => {
-            const a = oba.c;
-            testCallBack();
-        });
-        
-        oba.c++;
-        expect(testCallBack).toBeCalled();
-        oba.c++;
-    
-        expect(testCallBack).toHaveBeenCalledTimes(3);
-        unobserve();
-        oba.c++;
-        expect(testCallBack).toHaveBeenCalledTimes(3);
-        
-    });
-
-
-    test("当一个可观测对象内同一个key，存在多个回调依赖，可正确执行，取消其中一个，其他的reaction依然可以正常执行", () =>{
-        const  a  = { b:1, c:2};
-        const oba = observable(a);
-        const fn = jest.fn();
-        const fn2 = jest.fn();
-        const fn3 = jest.fn();
-        
-        const unob = observe(() => {
-            const b = oba.b;
-            fn(); 
-        });
-
-        const unob2 = observe(() => {
-            const b = oba.b;
-            fn2(); 
-        });
-        
-        const unob3 = observe(() => {
-            const c = oba.c;
-            fn3(); 
-        });
-
-        oba.b++;
-        oba.b++;
-        oba.c++;
-
-        expect(fn).toBeCalledTimes(3);
-        expect(fn2).toBeCalledTimes(3);
-        expect(fn3).toBeCalledTimes(2);
-
-        unob();
-        oba.b++;   
-        expect(fn).toBeCalledTimes(3);
-        expect(fn2).toBeCalledTimes(4);
-        expect(fn3).toBeCalledTimes(2);
-
-        unob2();
-        oba.b++;   
-        oba.c++;
-        expect(fn).toBeCalledTimes(3);
-        expect(fn2).toBeCalledTimes(4);
-        expect(fn3).toBeCalledTimes(3);
-
-        unob3();
-        oba.c++;
-        expect(fn).toBeCalledTimes(3);
-        expect(fn2).toBeCalledTimes(4);
-        expect(fn3).toBeCalledTimes(3);
-    });
-});
 
 describe("test isObservable" , () => {
+    
+    test("没有提供参数时应返回一个新的observable", () => {
+        const obs = observable();
+       
+        expect(isObservable(obs)).toBeTruthy();
+    });
+
+    test("应该返回observable参数的可观察包装对象", () => {
+        const obj = {a:1};
+        const obs = observable(obj);
+        expect(obs === obj).toBeFalsy();
+    });
+
+    test("如果已经是可观察对象，则应返回observable参数", () => {
+        const obs = observable();
+        const obs2 = observable(obs);
+      
+        expect(obs === obs2).toBeTruthy();
+    });
+
+    test("当使用相同的参数重复调用时，应返回相同的可观察包装器", () => {
+        const a = {a:1};
+        const obs = observable(a);
+        const obs2 = observable(a);
+      
+        expect(obs === obs2).toBeTruthy();
+    });
+
+
+   /* it('should never let observables leak into the underlying raw object', () => {
+        const obj:any = {};
+        const obs = observable(obj);
+        obs.nested1 = {};
+        obs.nested2 = observable();
+        expect(isObservable(obj.nested1)).toBeFalsy();
+        expect(isObservable(obj.nested2)).toBeFalsy();
+        expect(isObservable(obs.nested1)).toBeFalsy();
+        expect(isObservable(obs.nested2)).toBeTruthy();
+    });
+   */
     test('observable包装的基本对象，isObservable返回true', () => {
        const a = {a:1,b:2};
-       observable(a);
-       expect(isObservable(a)).toBeTruthy();
+       const obs = observable(a);
+       expect(isObservable(obs)).toBeTruthy();
     });
 
     test('primary对象，isObservable返回false', () => {
         const a = {a: 1, b:2};
         expect(isObservable(a)).toBeFalsy();
     });
+
+
+    
 
 });

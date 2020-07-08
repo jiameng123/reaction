@@ -10,16 +10,14 @@ export const get = (target: any, prop: string | number | symbol, receiver: any) 
 
 export const set = (target: any, prop: string | number | symbol, value: any, receiver: any) => {
   const oldValue = target[prop];
- 
+  const hasProp = Object.prototype.hasOwnProperty.call(target, prop);
+  
   try {
-    if (Reflect.has(target, prop)) {
-        
-    } else {
-       
-    }
-    
     Reflect.set(target, prop, value, receiver);
-    Reaction.runningReactions({ target, key: prop, type: "set", receiver });
+    const type = hasProp && oldValue !== value ? "set" : "add";
+   
+    Reaction.runningReactions({ target, key: prop, type, receiver });
+   
     return true;
   } catch (error) {
     
@@ -28,9 +26,21 @@ export const set = (target: any, prop: string | number | symbol, value: any, rec
   
 }
 
-const handler:ProxyHandler<any> = {
+export const deleteProperty  = (target:object, prop: string | number | symbol) => {
+    const hasProp = Object.prototype.hasOwnProperty.call(target, prop);
+    const result = Reflect.deleteProperty(target, prop);
+  
+    if(hasProp) {
+      Reaction.runningReactions({ target, key: prop, type: "delete", value: target[prop] });
+    }
+   
+    return result;
+}
+
+const handler = {
   get,
-  set
+  set,
+  deleteProperty
 }
 
 export default handler;

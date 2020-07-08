@@ -8,7 +8,12 @@ import handler from "./handler";
  * @param raw {*}
  * @returns {*}
  */
-const observable = <T extends TRaw>(raw:T):T =>  {
+const observable = (raw?:TRaw) =>  {
+    if(!raw) {
+       raw = {};
+       
+    } 
+   
     if(store.proxyToRaw.has(raw)) return raw;
     const preProxyObjs = store.rawToProxy.get(raw);
     if(preProxyObjs) return preProxyObjs;
@@ -16,9 +21,9 @@ const observable = <T extends TRaw>(raw:T):T =>  {
     return store.getProxy(raw);
 }
 
-export const isObservable = <T extends object>(obj:T):boolean => store.rawToProxy.has(obj);
+export const isObservable = <T extends object>(obj:T):boolean => store.proxyToRaw.has(obj);
 
-export const getRaw = <T extends object>(proxy:T):T => store.proxyToRaw.get(proxy);
+export const getRaw = <T extends object>(proxy:T):T => store.proxyToRaw.get(proxy) || proxy;
 
 export default observable;
 
