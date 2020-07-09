@@ -15,11 +15,7 @@ export default class Reaction {
     	this.callback = fn;
   	}
 
-  	track() {
-		Reaction.stack.forEach(reaction => reaction.callback());
-	}
-	  
-
+  
 	run() {
 		
 		if(Reaction.stack.indexOf(this) === -1) {
@@ -52,7 +48,7 @@ export default class Reaction {
 		this.release(reation || this);
 	}
 
-	//依赖收集
+	//根据key注册reactions
 	static register(operation: IOperation) {
 		const [currentReaction] = Reaction.stack.slice(-1);
 		if (currentReaction) {
@@ -72,22 +68,22 @@ export default class Reaction {
 
 	}
 
+	static track(reactionsForKey:Set<Reaction>, target:Map<string|symbol|number, Set<Reaction>>, key:string|symbol|number) {
+		const reactions = target.get(key);
+		reactions && reactions.forEach(reactionsForKey.add, reactionsForKey);
+	}
+	
+
 	//根据 object.prop 收集对应的观测函数  object.prop ---> reaction
 	static getReactionsForOperation({ target, key, type }: IOperation):Set<Reaction> {
 		const reactionsForRaw = store.connection.get(target) || new Map();
 	
 		const reactionsForKey = new Set<Reaction>();
-		Reaction.addReactionsForKey(reactionsForKey, reactionsForRaw,  Array.isArray(target) ? 'length' : key );
+		
+		Reaction.track(reactionsForKey, reactionsForRaw,  Array.isArray(target) ? 'length' : key );
 		
 		return reactionsForKey;
 	}
-
-   
-	static addReactionsForKey(reactionsForKey:Set<Reaction>, target:Map<string|symbol|number, Set<Reaction>>, key:string|symbol|number) {
-		const reactions = target.get(key);
-		reactions && reactions.forEach(reactionsForKey.add, reactionsForKey);
-	}
-
 	
 	//根据object.prop调用对应的观察函数
 	static runningReactions({ target, key, type }: IOperation) {

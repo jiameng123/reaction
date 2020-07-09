@@ -1,14 +1,34 @@
-import { TRaw, TProxy } from "./index.interface";
+import { isObject } from "./help";
+import store from "./internals";
 import Reaction from './reaction';
+import observable from './observable';
 
-export const get = (target: any, prop: string | number | symbol, receiver: any) => {
- 
+export const get = (target: object, prop: string | number | symbol, receiver: any) => {
+  
+  const result = Reflect.get(target, prop, receiver);
+  
+  if(typeof prop === "symbol") return result;
+
   Reaction.register({ target, key: prop, receiver, type: 'get' });
-  return Reflect.get(target, prop, receiver);
+  const observableResult = store.rawToProxy.get(result);
+  
+  if(result != null && isObject(result)) {
+      if(observableResult) return observableResult;
+
+      const descriptor = Reflect.getOwnPropertyDescriptor(result, prop);
+
+      if(descriptor) {
+        if(descriptor.writable || descriptor.configurable) {
+          return observable(result);
+        }
+      } 
+  }
+
+  return observableResult || result;
 };
 
 
-export const set = (target: any, prop: string | number | symbol, value: any, receiver: any) => {
+export const set = (target: object, prop: string | number | symbol, value: any, receiver: any) => {
   const oldValue = target[prop];
   const hasProp = Object.prototype.hasOwnProperty.call(target, prop);
   
@@ -37,9 +57,17 @@ export const deleteProperty  = (target:object, prop: string | number | symbol) =
     return result;
 }
 
+export const has = (target:object, prop:string| number |symbol) => {
+
+  Reaction.register({target, key: prop, type: "has"});
+  return Reflect.has(target, prop);
+
+}
+
 const handler = {
   get,
   set,
+  has,
   deleteProperty
 }
 

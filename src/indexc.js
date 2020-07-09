@@ -1,13 +1,21 @@
 const { observable , observe } = require("@nx-js/observer-util");
-const oObj = observable( []);
+const oObj = observable( [2]);
 
-observe(() => {
- 
-  console.log(oObj);
+const a = [1,2];
+
+const pa = new Proxy(a, {
+  get(target, key, re) {
+    console.log("get---->",target, key);
+    return target[key]
+  },
+  set(target, key, value) {
+  
+    return target[key]  = value;
+  }
+
 });
 
-oObj.push(1);
-
+pa.map(v =>  console.log(v))
 
 
 
