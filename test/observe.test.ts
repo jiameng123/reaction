@@ -1,5 +1,5 @@
 import { observable, observe, isObservable } from "../src/index";
-
+import store from "../src/internals";
 
 
 describe("test observe",  () => {
@@ -163,5 +163,7 @@ describe("test observe",  () => {
         list.shift();
         list[1] = "aaaa";
         expect(dummy).toEqual('World! aaaa');
+
+       
     });
 });

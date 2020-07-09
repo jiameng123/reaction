@@ -9,15 +9,14 @@ import handler from "./handler";
  * @returns {*}
  */
 const observable = (raw?:TRaw) =>  {
-    if(!raw) {
-       raw = {};
-       
-    } 
+    if(!raw) raw = {};
    
     if(store.proxyToRaw.has(raw)) return raw;
     const preProxyObjs = store.rawToProxy.get(raw);
+
     if(preProxyObjs) return preProxyObjs;
     store.setProxy(raw, new Proxy(raw, handler));
+
     return store.getProxy(raw);
 }
 

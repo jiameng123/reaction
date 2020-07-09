@@ -1,5 +1,6 @@
 import { IOperation } from './index.interface';
 import store from './internals';
+import { isObject } from './help';
 
 
 export type IFunc = (...args: any) => any;
@@ -10,6 +11,8 @@ export default class Reaction {
 	private callback: IFunc = () => { };
 	static stack: Array<Reaction> = [];
 	private clearns: Array<Set<Reaction>> = [];
+	//迭代对象时自定义key
+	static ITERATOR_KEY = Symbol("iteration key");
 
   	constructor(fn: IFunc) {
     	this.callback = fn;
@@ -17,7 +20,6 @@ export default class Reaction {
 
   
 	run() {
-		
 		if(Reaction.stack.indexOf(this) === -1) {
 			this.release(this);
 			try {
@@ -52,11 +54,18 @@ export default class Reaction {
 	static register(operation: IOperation) {
 		const [currentReaction] = Reaction.stack.slice(-1);
 		if (currentReaction) {
-			const { target, key } = operation;
+			let { target, key, type } = operation;
+			
+			// reactions callback 中访迭代访问对象key，通过自定义key ITERATOR_KEY与观察函数建立关联 exp:observe(() => for(var key in obj));
+		 	if(type ==="iterate") key = Reaction.ITERATOR_KEY;
+
 			const reactionsForRaw = store.connection.get(target);
-			let reactionsForKey = reactionsForRaw?.get(key);
-			if (!reactionsForKey) reactionsForKey = new Set();
-			reactionsForRaw?.set(key, reactionsForKey);
+			let reactionsForKey = reactionsForRaw?.get(key as any);
+			
+			if (!reactionsForKey) {
+				reactionsForKey = new Set();
+				reactionsForRaw?.set(key as any, reactionsForKey);
+			}
 
 			if (!reactionsForKey.has(currentReaction)) {
 				reactionsForKey.add(currentReaction);
@@ -77,11 +86,14 @@ export default class Reaction {
 	//根据 object.prop 收集对应的观测函数  object.prop ---> reaction
 	static getReactionsForOperation({ target, key, type }: IOperation):Set<Reaction> {
 		const reactionsForRaw = store.connection.get(target) || new Map();
-	
 		const reactionsForKey = new Set<Reaction>();
-		
-		Reaction.track(reactionsForKey, reactionsForRaw,  Array.isArray(target) ? 'length' : key );
-		
+
+		key &&  Reaction.track(reactionsForKey, reactionsForRaw, key);
+
+		if(type === "add" || type === "delete" || type === "clear") {
+			Reaction.track(reactionsForKey, reactionsForRaw, Array.isArray(target) ? 'length' :  Reaction.ITERATOR_KEY);
+		}
+
 		return reactionsForKey;
 	}
 	

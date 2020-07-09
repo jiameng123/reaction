@@ -64,11 +64,18 @@ export const has = (target:object, prop:string| number |symbol) => {
 
 }
 
+
+export const ownKeys = (target:object) => {
+  Reaction.register({target, type: "iterate" });
+  return Reflect.ownKeys(target);
+}
+
 const handler = {
   get,
   set,
   has,
-  deleteProperty
+  deleteProperty,
+  ownKeys
 }
 
 export default handler;

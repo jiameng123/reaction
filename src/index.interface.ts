@@ -9,7 +9,7 @@ export type TSubscribe = () => void;
 export interface IOperation {
   type: "add" | "iterate" | "get" | "set" | "delete" | "clear" | "has";
   target: object;
-  key: TKey;
+  key?: TKey;
   receiver?: unknown;
   value?: unknown;
   oldValue?: unknown;
