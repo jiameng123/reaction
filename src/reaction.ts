@@ -1,6 +1,6 @@
 import { IOperation } from './index.interface';
 import store from './internals';
-import { isObject } from './help';
+
 
 
 export type IFunc = (...args: any) => any;
@@ -14,12 +14,19 @@ export default class Reaction {
 	//迭代对象时自定义key
 	static ITERATOR_KEY = Symbol("iteration key");
 
+	protected unobserved:boolean = false;
+
   	constructor(fn: IFunc) {
     	this.callback = fn;
   	}
 
   
 	run() {
+		//如果已经取消 则直接运行
+		if(this.unobserved) {
+			return Reflect.apply(this.callback, this, arguments);
+		}
+
 		if(Reaction.stack.indexOf(this) === -1) {
 			this.release(this);
 			try {
@@ -47,7 +54,12 @@ export default class Reaction {
 
 	//取消观察
 	unObserve(reation?:Reaction) {
-		this.release(reation || this);
+		const _reaction = reation || this;
+		if(!_reaction.unobserved) {
+			_reaction.unobserved = true;
+			this.release(reation || this);
+		}
+		
 	}
 
 	//根据key注册reactions
@@ -88,9 +100,18 @@ export default class Reaction {
 		const reactionsForRaw = store.connection.get(target) || new Map();
 		const reactionsForKey = new Set<Reaction>();
 
-		key &&  Reaction.track(reactionsForKey, reactionsForRaw, key);
+		if(type === "clear") {
+			reactionsForRaw.forEach((_, key) => {
+				Reaction.track(reactionsForKey, reactionsForRaw, key);
+			});
+
+		} else {
+			key &&  Reaction.track(reactionsForKey, reactionsForRaw, key);
+		}
+		
 
 		if(type === "add" || type === "delete" || type === "clear") {
+			
 			Reaction.track(reactionsForKey, reactionsForRaw, Array.isArray(target) ? 'length' :  Reaction.ITERATOR_KEY);
 		}
 
@@ -100,6 +121,10 @@ export default class Reaction {
 	//根据object.prop调用对应的观察函数
 	static runningReactions({ target, key, type }: IOperation) {
 		Reaction.getReactionsForOperation({ target, key, type }).forEach(reaction => reaction.run());
+	}
+
+	static hasRunningReactions() {
+		return Reaction.stack.length > 0;
 	}
 }
 

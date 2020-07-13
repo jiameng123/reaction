@@ -1,7 +1,7 @@
-import { isObject } from "./help";
-import store from "./internals";
-import Reaction from './reaction';
-import observable from './observable';
+import { isObject } from "../help";
+import store from "../internals";
+import Reaction from '../reaction';
+import observable from '../observable';
 
 export const get = (target: object, prop: string | number | symbol, receiver: any) => {
   
@@ -12,15 +12,15 @@ export const get = (target: object, prop: string | number | symbol, receiver: an
   Reaction.register({ target, key: prop, receiver, type: 'get' });
   const observableResult = store.rawToProxy.get(result);
   
-  if(result != null && isObject(result)) {
-      if(observableResult) return observableResult;
+  //如果result是一个对象，并且 target 已经被包装，则包装result对象
+  if(Reaction.hasRunningReactions() && result != null && isObject(result) ) {
+     // if(observableResult) return observableResult;
+     
+      const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
 
-      const descriptor = Reflect.getOwnPropertyDescriptor(result, prop);
-
-      if(descriptor) {
-        if(descriptor.writable || descriptor.configurable) {
-          return observable(result);
-        }
+      if(!descriptor || !(descriptor.writable === false && descriptor.configurable === false)) {
+       
+        return observable(result);
       } 
   }
 
@@ -32,18 +32,22 @@ export const set = (target: object, prop: string | number | symbol, value: any, 
   const oldValue = target[prop];
   const hasProp = Object.prototype.hasOwnProperty.call(target, prop);
   
-  try {
-    Reflect.set(target, prop, value, receiver);
-    const type = hasProp && oldValue !== value ? "set" : "add";
-   
-    Reaction.runningReactions({ target, key: prop, type, receiver });
-   
-    return true;
-  } catch (error) {
-    
-    return false;
+  if(typeof value === "object" && value != null) {
+    value = store.proxyToRaw.get(value) || value;
   }
   
+
+  const result = Reflect.set(target, prop, value, receiver);
+
+  if(!hasProp) {
+    Reaction.runningReactions({ target, key: prop, type: "add", receiver });
+
+  } else if(value !== oldValue){
+    Reaction.runningReactions({ target, key: prop, type: "set", receiver });
+  }
+
+  return result;
+    
 }
 
 export const deleteProperty  = (target:object, prop: string | number | symbol) => {

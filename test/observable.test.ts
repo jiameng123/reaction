@@ -1,4 +1,5 @@
-import { observable,  isObservable } from "../src/index";
+import { observable,  isObservable, observe } from "../src/index";
+
 
 
 
@@ -31,8 +32,23 @@ describe("test isObservable" , () => {
         expect(obs === obs2).toBeTruthy();
     });
 
+    test("如果对象不可写，不应该包装成observable对象", () => {
+        let dummy:number;
+        const obj = {};
+        Object.defineProperty(obj, 'prop', {
+          value: { num: 12 },
+          writable: false,
+          configurable: false
+        });
+        const obs = observable(obj)
+        observe(() => (dummy = obs.prop.num));
+        expect(dummy).toEqual(12);
+        (obj as any).prop.num = 13;
+        expect(dummy).toEqual(12);
+      });
 
-   /* it('should never let observables leak into the underlying raw object', () => {
+
+   test("原始对象中不应该包含可观察对象", () => {
         const obj:any = {};
         const obs = observable(obj);
         obs.nested1 = {};
@@ -41,8 +57,9 @@ describe("test isObservable" , () => {
         expect(isObservable(obj.nested2)).toBeFalsy();
         expect(isObservable(obs.nested1)).toBeFalsy();
         expect(isObservable(obs.nested2)).toBeTruthy();
+        
     });
-   */
+ 
     test('observable包装的基本对象，isObservable返回true', () => {
        const a = {a:1,b:2};
        const obs = observable(a);
@@ -54,7 +71,27 @@ describe("test isObservable" , () => {
         expect(isObservable(a)).toBeFalsy();
     });
 
+});
 
-    
+
+describe("isObservable", () => {
+    test('如果将observable作为参数传递，则应返回true', () => {
+      const obs = observable();
+      const isObs = isObservable(obs);
+      expect(isObs).toBeTruthy();
+    });
+  
+    test("如果将不可观察的参数作为参数传递，则应返回false", () => {
+      const obj1 = { prop: 'value' };
+      const obj2 = new Proxy({}, {});
+      const isObs1 = isObservable(obj1);
+      const isObs2 = isObservable(obj2);
+      expect(isObs1).toBeFalsy();
+      expect(isObs2).toBeFalsy();
+    });
+  
+    test("如果将primitive作为参数传递，则应返回false", () => {
+      expect(isObservable(12 as any)).toBeFalsy();
+    });
 
 });

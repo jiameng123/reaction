@@ -17,7 +17,7 @@ import Reaction from './reaction';
     public setProxy(raw:T, proxy:T) {
       this.rawToProxy.set(raw, proxy);
       this.proxyToRaw.set(proxy,raw);
-      this.connection.set(raw, new Map<symbol | string | number, any>());
+      this.connection.set(raw, new Map());
     }
 
     public getRaw<U extends object>(proxyObj:U) {

@@ -1,28 +1,28 @@
 
 import { TRaw } from "./index.interface";
 import store from "./internals";
-import handler from "./handler";
+import getHandles, { shouldInstrument } from "./handles/index";
 /**
  * @description 创建observable对象
  * @sig  a -> a
  * @param raw {*}
  * @returns {*}
  */
-const observable = (raw?:TRaw) =>  {
-    if(!raw) raw = {};
-   
-    if(store.proxyToRaw.has(raw)) return raw;
+const observable = (raw:TRaw = {}) =>  {
+    
+    if(store.proxyToRaw.has(raw) || !shouldInstrument(raw)) return raw;
     const preProxyObjs = store.rawToProxy.get(raw);
 
     if(preProxyObjs) return preProxyObjs;
-    store.setProxy(raw, new Proxy(raw, handler));
+    
+    store.setProxy(raw, new Proxy(raw, getHandles(raw)));
 
     return store.getProxy(raw);
 }
 
 export const isObservable = <T extends object>(obj:T):boolean => store.proxyToRaw.has(obj);
 
-export const getRaw = <T extends object>(proxy:T):T => store.proxyToRaw.get(proxy) || proxy;
+
 
 export default observable;
 

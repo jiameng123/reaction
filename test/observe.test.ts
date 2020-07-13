@@ -1,5 +1,5 @@
-import { observable, observe, isObservable } from "../src/index";
-import store from "../src/internals";
+import { observable, observe } from "../src/index";
+
 
 
 describe("test observe",  () => {
@@ -163,7 +163,41 @@ describe("test observe",  () => {
         list.shift();
         list[1] = "aaaa";
         expect(dummy).toEqual('World! aaaa');
-
-       
     });
+
+    test("应该能观察多个属性", () => {
+        let dummy;
+        const counter = observable({ num1: 0, num2: 0 });
+        observe(() => (dummy = counter.num1 + counter.num1 + counter.num2));
+    
+        expect(dummy).toEqual(0);
+        counter.num1 = counter.num2 = 7;
+        expect(dummy).toEqual(21);
+    });
+
+    test("同一属性多个reaction应该能正确执行", () => {
+        let dummy1, dummy2
+        const counter = observable({ num: 0 })
+        observe(() => (dummy1 = counter.num))
+        observe(() => (dummy2 = counter.num))
+    
+        expect(dummy1).toEqual(0)
+        expect(dummy2).toEqual(0)
+        counter.num++
+        expect(dummy1).toEqual(1)
+        expect(dummy2).toEqual(1)
+    });
+
+
+    test("应该能观察嵌套属性", () => {
+        let dummy
+        const counter = observable({ nested: { num: 0 } })
+        observe(() => (dummy = counter.nested.num))
+    
+        expect(dummy).toEqual(0)
+        counter.nested.num = 8
+        expect(dummy).toEqual(8)
+    });
+
+  
 });
